@@ -1,0 +1,40 @@
+
+
+
+
+ServiceMonitoringData:
+  - api_name (string): name of the API.
+  - user_id (integer): ID of the user making the request.
+  - request_time (datetime): timestamp of the request.
+  - response_time (integer): response time of the request in milliseconds.
+  - error_status (boolean): whether the request resulted in an error.
+
+
+
+This schema allows us to store the monitoring data of the service in a structured manner, and use SQL queries to perform the required operations, such as finding the API with maximum average response time across users, maximum average response time for each user, and error percentage of each API in buckets of 1 hour for 24 hours.
+For example, the following SQL query can be used to get the API with maximum average response time across users:
+
+SELECT api_name, AVG(response_time) AS avg_response_time
+FROM ServiceMonitoringData
+GROUP BY api_name
+ORDER BY avg_response_time DESC
+LIMIT 1
+
+
+This query calculates the average response time for each API, and then returns the API with the maximum average response time.
+Similarly, the following SQL query can be used to get the API with maximum average response time for each user:
+
+SELECT user_id, api_name, AVG(response_time) AS avg_response_time
+FROM ServiceMonitoringData
+GROUP BY user_id, api_name
+ORDER BY avg_response_time DESC
+
+
+This query calculates the average response time for each API and user, and then returns the API with the maximum average response time for each user.
+Finally, the following SQL query can be used to get the error percentage of each API in buckets of 1 hour for 24 hours:
+
+SELECT api_name, request_time, SUM(error_status) / COUNT(*) AS error_percentage
+FROM ServiceMonitoringData
+GROUP BY api_name, request_time
+
+This query calculates the error percentage of each API in each hour by dividing the number of errors by the total number of requests. The query can be further refined to return the error percentage only for the last 24 hours by adding a WHERE request_time > NOW() - INTERVAL 24 HOUR condition to the WHERE clause.
